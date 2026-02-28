@@ -97,9 +97,14 @@
         this.targetX = targetX;
         this.targetY = targetY;
         this.speed = 5 + Math.random() * 2;
-        this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
         this.payloadType = payload.type || "normal";
         this.payloadText = payload.text || "";
+        // 文字炮弹使用更鲜艳的颜色
+        if (this.payloadType === "shape") {
+          this.color = `hsl(${Math.random() * 360}, 100%, ${70 + Math.random() * 20}%)`;
+        } else {
+          this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+        }
         this.done = false;
       }
 
@@ -128,11 +133,26 @@
         ctx.fillStyle = this.color;
         ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
         ctx.fill();
-        // 添加光晕效果
-        ctx.globalAlpha = 0.3;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
-        ctx.fill();
+        // 文字炮弹有更强的光晕效果和闪烁
+        if (this.payloadType === "shape") {
+          const flashIntensity = 0.5 + Math.sin(flashFrame * 0.3) * 0.2;
+          // 多层光晕，让效果更鲜艳
+          ctx.globalAlpha = flashIntensity;
+          ctx.beginPath();
+          ctx.fillStyle = this.color;
+          ctx.arc(this.x, this.y, 12, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = flashIntensity * 0.6;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, 20, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // 普通炮弹的简单光晕
+          ctx.globalAlpha = 0.3;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
 
@@ -140,6 +160,7 @@
     const particles = [];
     let clickShapeIndex = 0;
     const clickShapes = ["新年快乐！！！", "祝大家", "长生不老", "永远不死～～～"];
+    let flashFrame = 0;
 
     let bgmAudio = null;
     let bgmStarted = false;
@@ -285,6 +306,7 @@
     let autoTimer = 0;
     function animate() {
       requestAnimationFrame(animate);
+      flashFrame++;
 
       // 留一点拖影，模拟夜空中的烟雾感。
       ctx.globalAlpha = 0.2;
